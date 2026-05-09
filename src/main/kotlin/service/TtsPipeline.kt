@@ -50,12 +50,14 @@ class TtsPipeline(
     private val encoder: WavEncoder = WavEncoder,
 ) {
 
+    fun previewChunks(text: String): List<String> = chunker.chunk(text)
+
     suspend fun synthesizeToFile(
         request: TtsRequest,
         outputPath: Path,
         onProgress: ProgressCallback = ProgressCallback.Noop,
     ): Path {
-        val chunks = chunker.chunk(request.text).also {
+        val chunks = previewChunks(request.text).also {
             if (it.isEmpty()) throw TtsError.EmptyText()
         }
 

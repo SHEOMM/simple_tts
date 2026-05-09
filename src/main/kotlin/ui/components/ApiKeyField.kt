@@ -24,6 +24,7 @@ fun ApiKeyField(
     onSave: () -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     var masked by remember { mutableStateOf(true) }
     Row(
@@ -36,11 +37,12 @@ fun ApiKeyField(
             onValueChange = onValueChange,
             label = { Text("API Key") },
             singleLine = true,
+            enabled = enabled,
             visualTransformation = if (masked) PasswordVisualTransformation() else VisualTransformation.None,
             modifier = Modifier.weight(1f),
         )
         TextButton(onClick = { masked = !masked }) { Text(if (masked) "보기" else "숨김") }
-        TextButton(onClick = onSave) { Text("저장") }
-        TextButton(onClick = onClear) { Text("지우기") }
+        TextButton(enabled = enabled, onClick = onSave) { Text("저장") }
+        TextButton(enabled = enabled, onClick = onClear) { Text("지우기") }
     }
 }

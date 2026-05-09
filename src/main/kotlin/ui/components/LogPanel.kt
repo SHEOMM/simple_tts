@@ -16,6 +16,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,15 @@ fun LogPanel(logs: List<String>, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     var copied by remember { mutableStateOf(false) }
     val joined = remember(logs) { logs.joinToString("\n") }
+
+    val scrollState = rememberScrollState()
+    LaunchedEffect(logs.size) {
+        if (logs.isEmpty()) return@LaunchedEffect
+        val shouldFollow = scrollState.value >= scrollState.maxValue - AUTO_FOLLOW_THRESHOLD || logs.size <= 1
+        if (shouldFollow) {
+            scrollState.scrollTo(scrollState.maxValue)
+        }
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -63,7 +73,7 @@ fun LogPanel(logs: List<String>, modifier: Modifier = Modifier) {
             tonalElevation = 1.dp,
             modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp).height(180.dp),
         ) {
-            Box(modifier = Modifier.padding(8.dp).verticalScroll(rememberScrollState())) {
+            Box(modifier = Modifier.padding(8.dp).verticalScroll(scrollState)) {
                 SelectionContainer {
                     Text(
                         text = if (logs.isEmpty()) "(아직 없음)" else joined,
@@ -76,3 +86,4 @@ fun LogPanel(logs: List<String>, modifier: Modifier = Modifier) {
 }
 
 private const val COPY_FEEDBACK_MS = 1500L
+private const val AUTO_FOLLOW_THRESHOLD = 50

@@ -4,6 +4,8 @@ composeMultiplatform = "1.7.3"
 kotlinxCoroutines = "1.9.0"
 jackson = "2.18.2"
 bucket4j = "8.14.0"
+kotlinLogging = "7.0.0"
+slf4j = "2.0.16"
 javaTarget = "17"
 
 [plugins]
@@ -16,3 +18,5 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 bucket4j-core = { module = "com.bucket4j:bucket4j_jdk11-core", version.ref = "bucket4j" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlinLogging" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }

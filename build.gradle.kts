@@ -19,6 +19,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.swing)
     implementation(libs.jackson.module.kotlin)
     implementation(libs.bucket4j.core)
+    implementation(libs.kotlin.logging)
+    runtimeOnly(libs.slf4j.simple)
 }
 
 kotlin {

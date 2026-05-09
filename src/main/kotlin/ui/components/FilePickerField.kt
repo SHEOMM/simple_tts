@@ -25,6 +25,7 @@ fun FilePickerField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     initialDirectory: String? = null,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -36,13 +37,17 @@ fun FilePickerField(
             onValueChange = onValueChange,
             label = { Text(label) },
             singleLine = true,
+            enabled = enabled,
             modifier = Modifier.weight(1f),
         )
-        TextButton(onClick = {
-            val initial = initialDirectory.takeUnless { it.isNullOrBlank() }
-                ?: value.takeIf { it.isNotBlank() }?.let { File(it).parent }
-            pickFile(mode, extension, initial)?.let { onValueChange(it.absolutePath) }
-        }) { Text("찾기...") }
+        TextButton(
+            enabled = enabled,
+            onClick = {
+                val initial = initialDirectory.takeUnless { it.isNullOrBlank() }
+                    ?: value.takeIf { it.isNotBlank() }?.let { File(it).parent }
+                pickFile(mode, extension, initial)?.let { onValueChange(it.absolutePath) }
+            },
+        ) { Text("찾기...") }
     }
 }
 
@@ -51,6 +56,7 @@ private fun pickFile(mode: FilePickerMode, extension: String, initialDirectory: 
     val flag = if (mode == FilePickerMode.Load) FileDialog.LOAD else FileDialog.SAVE
     val dialog = FileDialog(null as Frame?, title, flag).apply {
         if (!initialDirectory.isNullOrBlank()) directory = initialDirectory
+        // setFilenameFilter는 Windows에서 무시되지만 macOS/Linux에서는 유효
         setFilenameFilter { _, name -> name.endsWith(".$extension", ignoreCase = true) }
         if (mode == FilePickerMode.Load) file = "*.$extension"
         isVisible = true

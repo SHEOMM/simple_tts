@@ -7,7 +7,7 @@ class ParagraphSentenceChunker(
 ) : TextChunker {
 
     override fun chunk(text: String): List<String> {
-        val trimmed = text.trim()
+        val trimmed = text.removePrefix(BOM).trim()
         if (trimmed.isEmpty()) return emptyList()
         if (trimmed.length <= maxChars) return listOf(trimmed)
 
@@ -68,5 +68,6 @@ class ParagraphSentenceChunker(
         const val DEFAULT_MAX_CHARS = 3000
         private const val PARAGRAPH_GAP = 2
         private const val SENTENCE_GAP = 1
+        private const val BOM = "\uFEFF"
     }
 }

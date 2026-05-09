@@ -7,6 +7,7 @@ import domain.AudioBuffer
 import domain.TtsError
 import domain.TtsModel
 import domain.Voice
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URI
@@ -16,6 +17,8 @@ import java.net.http.HttpResponse
 import java.nio.file.Files
 import java.time.Duration
 import java.util.Base64
+
+private val log = KotlinLogging.logger {}
 
 class GeminiTtsClient(
     private val httpClient: HttpClient = defaultHttpClient(),
@@ -90,7 +93,7 @@ class GeminiTtsClient(
         runCatching {
             val tmp = Files.createTempFile("gemini-tts-failed-", ".json")
             Files.writeString(tmp, body)
-            System.err.println("[gemini-tts] failed body dumped to: $tmp (${body.length} chars)")
+            log.warn { "failed body dumped to: $tmp (${body.length} chars)" }
         }
     }
 

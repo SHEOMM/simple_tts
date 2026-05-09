@@ -13,10 +13,12 @@ fun StyleField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
+        enabled = enabled,
         label = { Text("스타일 지시 (선택) — 예: 차분하고 부드러운 톤으로 천천히 낭독해주세요") },
         modifier = modifier.fillMaxWidth().heightIn(min = 80.dp),
     )
