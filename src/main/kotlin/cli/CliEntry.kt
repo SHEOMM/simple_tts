@@ -20,6 +20,7 @@ class CliEntry(private val module: AppModule) {
 
         val request = TtsRequest(
             text = Files.readString(input),
+            apiKey = apiKey,
             model = module.settings.lastModel,
             voice = module.settings.lastVoice,
             styleInstruction = module.settings.lastStyle,

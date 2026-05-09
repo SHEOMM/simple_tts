@@ -24,10 +24,6 @@ class AppSettings(
         get() = store.get(KEY_STYLE)
         set(value) = store.put(KEY_STYLE, value)
 
-    var lastInputPath: String
-        get() = store.get(KEY_INPUT_PATH)
-        set(value) = store.put(KEY_INPUT_PATH, value)
-
     var lastOutputDir: String
         get() = store.get(KEY_OUTPUT_DIR)
         set(value) = store.put(KEY_OUTPUT_DIR, value)
@@ -40,7 +36,6 @@ class AppSettings(
         const val KEY_MODEL = "lastModel"
         const val KEY_VOICE = "lastVoice"
         const val KEY_STYLE = "lastStyle"
-        const val KEY_INPUT_PATH = "lastInputPath"
         const val KEY_OUTPUT_DIR = "lastOutputDir"
     }
 }

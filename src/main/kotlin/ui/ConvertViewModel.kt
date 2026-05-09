@@ -59,7 +59,6 @@ class ConvertViewModel(
     }
 
     fun onInputPathChange(path: String) {
-        settings.lastInputPath = path
         _state.update {
             val nextOutput = if (it.outputPath.isBlank()) deriveOutputPath(path) else it.outputPath
             it.copy(inputPath = path, outputPath = nextOutput)
@@ -109,7 +108,13 @@ class ConvertViewModel(
         job = scope.launch {
             try {
                 val text = Files.readString(input.toPath())
-                val request = TtsRequest(text, current.model, current.voice, current.style)
+                val request = TtsRequest(
+                    text = text,
+                    apiKey = current.apiKey,
+                    model = current.model,
+                    voice = current.voice,
+                    styleInstruction = current.style,
+                )
                 val outputPath = pipeline.synthesizeToFile(
                     request = request,
                     outputPath = File(current.outputPath).toPath(),
@@ -141,7 +146,7 @@ class ConvertViewModel(
 
     private fun initialState(): UiState = UiState(
         apiKey = settings.apiKey,
-        inputPath = settings.lastInputPath,
+        inputPath = "",
         outputPath = "",
         model = settings.lastModel,
         voice = settings.lastVoice,

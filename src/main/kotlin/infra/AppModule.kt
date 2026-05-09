@@ -23,7 +23,6 @@ class AppModule(
     private val mapper = jacksonObjectMapper()
 
     private val ttsClient: TtsClient = GeminiTtsClient(
-        apiKeyProvider = { settings.apiKey },
         httpClient = httpClient,
         mapper = mapper,
     )

@@ -17,7 +17,6 @@ import java.time.Duration
 import java.util.Base64
 
 class GeminiTtsClient(
-    private val apiKeyProvider: () -> String,
     private val httpClient: HttpClient = defaultHttpClient(),
     private val mapper: ObjectMapper = jacksonObjectMapper(),
     private val perRequestTimeout: Duration = DEFAULT_REQUEST_TIMEOUT,
@@ -25,10 +24,11 @@ class GeminiTtsClient(
 
     override suspend fun synthesize(
         text: String,
+        apiKey: String,
         model: TtsModel,
         voice: Voice,
     ): AudioBuffer = withContext(Dispatchers.IO) {
-        val apiKey = apiKeyProvider().ifBlank { throw TtsError.MissingApiKey() }
+        if (apiKey.isBlank()) throw TtsError.MissingApiKey()
         val response = httpClient.send(buildRequest(text, model, voice, apiKey), HttpResponse.BodyHandlers.ofString(Charsets.UTF_8))
         when (response.statusCode()) {
             200 -> parseAudio(response.body())

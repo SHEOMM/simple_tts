@@ -39,7 +39,7 @@ class TtsPipeline(
         chunks.forEachIndexed { index, chunk ->
             onProgress.report(index + 1, chunks.size, chunk.length)
             val effective = applyStyle(chunk, request.styleInstruction)
-            val audio = client.synthesize(effective, request.model, request.voice)
+            val audio = client.synthesize(effective, request.apiKey, request.model, request.voice)
             pcmAccumulator.write(audio.pcm)
             sampleRate = audio.sampleRate
         }
