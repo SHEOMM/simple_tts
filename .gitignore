@@ -1,0 +1,60 @@
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Kotlin ###
+.kotlin/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### macOS ###
+.DS_Store
+
+### JVM crash logs ###
+hs_err_pid*.log
+replay_pid*.log
+
+### Secrets / local config (안전망) ###
+.env
+.env.*
+local.properties
+secrets.properties
+*.pem
+*.p12
+*.key
+
+### TTS 출력 (테스트 산출물 — sample.txt만 커밋) ###
+*.wav
+*.mp3
+!sample.wav
