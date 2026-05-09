@@ -1,5 +1,7 @@
 package infra
 
+import com.fasterxml.jackson.core.StreamReadConstraints
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import core.ParagraphSentenceChunker
 import core.RateLimiter
@@ -30,7 +32,13 @@ class AppModule(
         .connectTimeout(Duration.ofSeconds(30))
         .build()
 
-    private val mapper = jacksonObjectMapper()
+    private val mapper: ObjectMapper = jacksonObjectMapper().apply {
+        factory.setStreamReadConstraints(
+            StreamReadConstraints.builder()
+                .maxStringLength(Int.MAX_VALUE)
+                .build()
+        )
+    }
 
     private val limiters: Map<TtsModel, RateLimiter> = TtsModel.all.associateWith {
         Bucket4jRateLimiter.forSpec(it.rateLimitSpec)

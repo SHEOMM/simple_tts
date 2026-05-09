@@ -13,6 +13,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.nio.file.Files
 import java.time.Duration
 import java.util.Base64
 
@@ -63,12 +64,34 @@ class GeminiTtsClient(
     }
 
     private fun parseAudio(body: String): AudioBuffer {
-        val response = runCatching { mapper.readValue<GenerateContentResponse>(body) }
-            .getOrElse { throw TtsError.MalformedResponse(body.take(500), it) }
+        val response = try {
+            mapper.readValue<GenerateContentResponse>(body)
+        } catch (e: Throwable) {
+            throw TtsError.MalformedResponse(buildDiagnostic(body, e), e).also { dumpRawBody(body) }
+        }
         val inlineData = response.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.inlineData
-            ?: throw TtsError.MalformedResponse(body.take(500))
+            ?: throw TtsError.MalformedResponse(buildDiagnostic(body, null)).also { dumpRawBody(body) }
         val pcm = Base64.getDecoder().decode(inlineData.data)
         return AudioBuffer(pcm, sampleRateOf(inlineData.mimeType))
+    }
+
+    private fun buildDiagnostic(body: String, cause: Throwable?): String {
+        val causeMsg = cause?.message?.lineSequence()?.firstOrNull()?.take(200)
+        val parts = listOfNotNull(
+            "size=${body.length}",
+            causeMsg?.let { "cause=$it" },
+            "head=${body.take(200)}",
+            "tail=${body.takeLast(200)}",
+        )
+        return parts.joinToString(" | ")
+    }
+
+    private fun dumpRawBody(body: String) {
+        runCatching {
+            val tmp = Files.createTempFile("gemini-tts-failed-", ".json")
+            Files.writeString(tmp, body)
+            System.err.println("[gemini-tts] failed body dumped to: $tmp (${body.length} chars)")
+        }
     }
 
     private fun sampleRateOf(mimeType: String): Int =

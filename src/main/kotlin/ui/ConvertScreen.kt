@@ -105,7 +105,6 @@ fun ConvertScreen(viewModel: ConvertViewModel) {
             LinearProgressIndicator(progress = { state.progress }, modifier = Modifier.fillMaxWidth())
         }
 
-        Text("로그", style = MaterialTheme.typography.titleSmall)
         LogPanel(logs = state.logs)
     }
 }
