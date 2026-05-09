@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
 }
 
 private fun startGui(module: AppModule) = application {
-    val viewModel = remember { ConvertViewModel(module.pipeline, module.settings, MainScope()) }
+    val viewModel = remember { ConvertViewModel(module, MainScope()) }
     Window(
         onCloseRequest = ::exitApplication,
         title = "Gemini TTS",

@@ -1,10 +1,11 @@
 package ui
 
+import domain.QuotaScope
 import domain.TtsError
 import domain.TtsModel
 import domain.TtsRequest
 import domain.Voice
-import infra.AppSettings
+import infra.AppModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,17 +13,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import service.ChunkEvent
 import service.ProgressCallback
-import service.TtsPipeline
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 
 class ConvertViewModel(
-    private val pipeline: TtsPipeline,
-    private val settings: AppSettings,
+    private val module: AppModule,
     private val scope: CoroutineScope,
 ) {
+    private val pipeline = module.pipeline
+    private val settings = module.settings
+
     data class UiState(
         val apiKey: String,
         val inputPath: String,
@@ -105,6 +108,9 @@ class ConvertViewModel(
             )
         }
 
+        val callback = ProgressCallback { event -> handleEvent(event) }
+        module.progressCallback = callback
+
         job = scope.launch {
             try {
                 val text = Files.readString(input.toPath())
@@ -118,16 +124,13 @@ class ConvertViewModel(
                 val outputPath = pipeline.synthesizeToFile(
                     request = request,
                     outputPath = File(current.outputPath).toPath(),
-                    onProgress = ProgressCallback { current, total, chars ->
-                        val fraction = current.toFloat() / total.toFloat()
-                        val message = "[$current/$total] 합성 중 ($chars 자)"
-                        _state.update { it.copy(progress = fraction, statusText = message) }
-                        appendLog(message)
-                    },
+                    onProgress = callback,
                 )
                 val sizeKb = Files.size(outputPath) / 1024
                 appendLog("완료: $outputPath (${sizeKb} KB)")
                 _state.update { it.copy(progress = 1f, statusText = "완료", lastOutput = outputPath) }
+            } catch (e: TtsError.RateLimited) {
+                handleRateLimited(e)
             } catch (e: TtsError) {
                 appendLog("실패: ${e.message}")
                 _state.update { it.copy(statusText = "실패") }
@@ -135,9 +138,45 @@ class ConvertViewModel(
                 appendLog("예상치 못한 오류: ${e.message}")
                 _state.update { it.copy(statusText = "실패") }
             } finally {
+                module.progressCallback = ProgressCallback.Noop
                 _state.update { it.copy(isRunning = false) }
             }
         }
+    }
+
+    private fun handleEvent(event: ChunkEvent) {
+        when (event) {
+            is ChunkEvent.Started -> {
+                val fraction = event.current.toFloat() / event.total.toFloat()
+                val message = "[${event.current}/${event.total}] 합성 중 (${event.chars}자)"
+                _state.update { it.copy(progress = fraction, statusText = message) }
+                appendLog(message)
+            }
+            is ChunkEvent.Waiting -> {
+                val statusText = "${event.reason.displayName} · ${event.remainingSeconds}s 남음"
+                _state.update { it.copy(statusText = statusText) }
+                if (event.isFirstTick) {
+                    val advice = event.reason.advice.takeIf { it.isNotBlank() }?.let { " — $it" }.orEmpty()
+                    appendLog("${event.reason.displayName} · 약 ${event.totalSeconds}초 대기$advice")
+                }
+            }
+        }
+    }
+
+    private fun handleRateLimited(e: TtsError.RateLimited) {
+        val violation = e.mostSevere
+        val head = violation?.let { "${it.displayName} 초과" } ?: "호출 한도 초과"
+        val modelHint = violation?.model?.let { " (모델: $it)" }.orEmpty()
+        val tail = when (violation?.scope) {
+            QuotaScope.RequestsPerDay -> "내일 다시 시도하거나 결제를 활성화하세요"
+            QuotaScope.InputTokensPerMinute -> "더 짧은 청크로 재시도하거나 잠시 후 다시 시도하세요"
+            QuotaScope.RequestsPerMinute -> e.retryDelay?.let { "${it.toSeconds()}초 후 재시도 가능" }
+                ?: "잠시 후 자동 재시도되지 않았습니다"
+            is QuotaScope.Unknown -> "원본 ID: ${violation.scope.rawId}"
+            null -> e.rawMessage.ifBlank { "응답에 상세 정보 없음" }
+        }
+        appendLog("실패: $head$modelHint — $tail")
+        _state.update { it.copy(statusText = "실패: $head") }
     }
 
     private fun appendLog(line: String) {

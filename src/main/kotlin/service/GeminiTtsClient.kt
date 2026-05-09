@@ -19,6 +19,7 @@ import java.util.Base64
 class GeminiTtsClient(
     private val httpClient: HttpClient = defaultHttpClient(),
     private val mapper: ObjectMapper = jacksonObjectMapper(),
+    private val errorParser: GeminiErrorParser = GeminiErrorParser(mapper),
     private val perRequestTimeout: Duration = DEFAULT_REQUEST_TIMEOUT,
 ) : TtsClient {
 
@@ -29,10 +30,13 @@ class GeminiTtsClient(
         voice: Voice,
     ): AudioBuffer = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) throw TtsError.MissingApiKey()
-        val response = httpClient.send(buildRequest(text, model, voice, apiKey), HttpResponse.BodyHandlers.ofString(Charsets.UTF_8))
+        val response = httpClient.send(
+            buildRequest(text, model, voice, apiKey),
+            HttpResponse.BodyHandlers.ofString(Charsets.UTF_8),
+        )
         when (response.statusCode()) {
             200 -> parseAudio(response.body())
-            429 -> throw TtsError.RateLimited(retryAfterFromHeaders(response))
+            429 -> throw errorParser.parseRateLimit(response.body())
             else -> throw TtsError.ApiError(response.statusCode(), response.body())
         }
     }
@@ -69,10 +73,6 @@ class GeminiTtsClient(
 
     private fun sampleRateOf(mimeType: String): Int =
         SAMPLE_RATE_REGEX.find(mimeType)?.groupValues?.get(1)?.toIntOrNull() ?: DEFAULT_SAMPLE_RATE
-
-    private fun retryAfterFromHeaders(response: HttpResponse<String>): Duration? =
-        response.headers().firstValue("Retry-After").orElse(null)
-            ?.toLongOrNull()?.let(Duration::ofSeconds)
 
     companion object {
         const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"

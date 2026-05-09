@@ -2,6 +2,7 @@ package service
 
 import core.TextChunker
 import core.WavEncoder
+import domain.QuotaViolation
 import domain.TtsError
 import domain.TtsRequest
 import kotlinx.coroutines.Dispatchers
@@ -10,11 +11,36 @@ import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
+sealed interface ChunkEvent {
+    data class Started(val current: Int, val total: Int, val chars: Int) : ChunkEvent
+
+    data class Waiting(
+        val current: Int,
+        val total: Int,
+        val totalSeconds: Long,
+        val remainingSeconds: Long,
+        val reason: WaitReason,
+    ) : ChunkEvent {
+        val isFirstTick: Boolean get() = remainingSeconds == totalSeconds
+    }
+}
+
+sealed class WaitReason(val displayName: String, val advice: String = "") {
+    data class RpmThrottle(val modelDisplay: String) : WaitReason(
+        displayName = "RPM 한도 페이싱 ($modelDisplay)",
+        advice = "분당 호출 한도 도달 — 다음 토큰 충전까지 자동 대기",
+    )
+    data class Retry(val attempt: Int, val violation: QuotaViolation?) : WaitReason(
+        displayName = if (violation != null) "${violation.displayName} 재시도 #$attempt" else "재시도 #$attempt",
+        advice = violation?.advice.orEmpty(),
+    )
+}
+
 fun interface ProgressCallback {
-    fun report(current: Int, total: Int, chunkChars: Int)
+    fun report(event: ChunkEvent)
 
     companion object {
-        val Noop = ProgressCallback { _, _, _ -> }
+        val Noop = ProgressCallback {}
     }
 }
 
@@ -37,7 +63,7 @@ class TtsPipeline(
         var sampleRate = GeminiTtsClient.DEFAULT_SAMPLE_RATE
 
         chunks.forEachIndexed { index, chunk ->
-            onProgress.report(index + 1, chunks.size, chunk.length)
+            onProgress.report(ChunkEvent.Started(index + 1, chunks.size, chunk.length))
             val effective = applyStyle(chunk, request.styleInstruction)
             val audio = client.synthesize(effective, request.apiKey, request.model, request.voice)
             pcmAccumulator.write(audio.pcm)

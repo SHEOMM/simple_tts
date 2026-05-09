@@ -4,23 +4,27 @@ sealed class TtsModel(
     val id: String,
     val displayName: String,
     val tier: Tier,
+    val rateLimitSpec: RateLimitSpec,
 ) {
     data object Flash3_1 : TtsModel(
         id = "gemini-3.1-flash-tts-preview",
         displayName = "3.1 Flash (최신, 표현 태그)",
         tier = Tier.PreviewFree,
+        rateLimitSpec = RateLimitSpec(rpm = 15),
     )
 
     data object Flash25 : TtsModel(
         id = "gemini-2.5-flash-preview-tts",
         displayName = "2.5 Flash (무료 티어)",
         tier = Tier.Free,
+        rateLimitSpec = RateLimitSpec(rpm = 15),
     )
 
     data object Pro25 : TtsModel(
         id = "gemini-2.5-pro-preview-tts",
         displayName = "2.5 Pro (결제 필요)",
         tier = Tier.Paid,
+        rateLimitSpec = RateLimitSpec(rpm = 360),
     )
 
     enum class Tier { Free, PreviewFree, Paid }

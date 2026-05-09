@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.swing)
     implementation(libs.jackson.module.kotlin)
+    implementation(libs.bucket4j.core)
 }
 
 kotlin {
