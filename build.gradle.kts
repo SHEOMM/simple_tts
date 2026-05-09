@@ -17,6 +17,7 @@ dependencies {
     implementation(compose.material3)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.swing)
+    implementation(libs.jackson.module.kotlin)
 }
 
 kotlin {
@@ -25,11 +26,11 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "AppKt"
+        mainClass = "MainKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi)
             packageName = "GeminiTTS"
-            packageVersion = "1.0.0"
+            packageVersion = "1.1.0"
         }
     }
 }

@@ -33,3 +33,14 @@ gradlew.bat run
 ```
 - macOS: `build/compose/binaries/main/dmg/GeminiTTS-1.0.0.dmg`
 - Windows: `build/compose/binaries/main/msi/GeminiTTS-1.0.0.msi`
+
+## 지원 모델
+- `gemini-3.1-flash-tts-preview` (기본) — 표현 태그 지원
+- `gemini-2.5-flash-preview-tts` — 무료 티어
+- `gemini-2.5-pro-preview-tts` — 결제 활성 필요
+
+3.1은 텍스트에 인라인 태그를 넣어 어조 제어 가능. 예:
+```
+[whispers] 비밀이야. [excited] 진짜 신나! [sad] 아쉬워...
+```
+사용 가능 태그: `[whispers]`, `[shouting]`, `[excited]`, `[bored]`, `[amazed]`, `[crying]`, `[curious]`, `[sighs]`, `[gasp]`, `[giggles]`, `[laughs]`, `[very slow]` 등.

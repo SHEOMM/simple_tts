@@ -2,6 +2,7 @@
 kotlin = "2.1.20"
 composeMultiplatform = "1.7.3"
 kotlinxCoroutines = "1.9.0"
+jackson = "2.18.2"
 javaTarget = "17"
 
 [plugins]
@@ -12,3 +13,4 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMu
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
