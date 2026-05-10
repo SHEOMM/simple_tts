@@ -14,6 +14,10 @@ import ui.ConvertScreen
 import ui.ConvertViewModel
 
 fun main(args: Array<String>) {
+    if (args.size == 1 && args[0] == "--check") {
+        AppModule()
+        return
+    }
     val module = AppModule()
     if (args.isNotEmpty()) {
         CliEntry(module).run(args)

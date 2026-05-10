@@ -40,6 +40,22 @@ jobs:
         run: ./gradlew ${{ matrix.task }}
         shell: bash
 
+      - name: Smoke test launcher (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $exe = "build/compose/binaries/main/app/GeminiTTS/GeminiTTS.exe"
+          if (-not (Test-Path $exe)) {
+            Write-Error "Launcher not found at $exe"
+            exit 1
+          }
+          $proc = Start-Process -FilePath $exe -ArgumentList "--check" -Wait -PassThru
+          if ($proc.ExitCode -ne 0) {
+            Write-Error "GeminiTTS.exe --check failed with exit code $($proc.ExitCode)"
+            exit 1
+          }
+          Write-Host "Smoke test passed"
+
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:

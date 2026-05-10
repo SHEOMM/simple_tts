@@ -33,7 +33,8 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi)
             packageName = "GeminiTTS"
-            packageVersion = "1.3.1"
+            packageVersion = "1.3.2"
+            includeAllModules = true
         }
     }
 }
